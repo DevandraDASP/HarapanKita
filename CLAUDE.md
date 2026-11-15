@@ -1,0 +1,62 @@
+# SidoarjoVerse: panduan proyek untuk Claude
+
+Kota virtual Sidoarjo bergaya 3D bulat menggemaskan yang **dibangun dari komentar netizen**.
+Akun: @sidoarjoverse · Website: https://sidoarjoverse.github.io · Admin: /admin.html
+Bahasa komunikasi dengan pemilik: **Bahasa Indonesia**, santai dan jelas (pemilik bukan programmer).
+
+## Konsep media sosial (jangan diubah tanpa persetujuan pemilik)
+- Follow = jadi warga. Komen dengan like terbanyak, besok dibangun. Seri harian "DAY X".
+- DAY otomatis: Admin → Umum → "Tanggal DAY 1" (`kota.day_mulai`); `hitungDay()` di `js/data.js` (ganti 00.00 WIB).
+- Mode Ramai (`js/ramai.js`): warga online saling terlihat + sapa pakai kalimat template/emote (tanpa chat bebas), via Supabase Realtime broadcast (tanpa SQL). Uji: `?ramai=uji`.
+- Website: peta 3D, KTP warga (tanpa PIN), klasemen 18 kecamatan, Pemilu (1 KTP = 1 suara), donasi, mode jalan-jalan.
+- Event bertahap sesuai follower: 1.000 = Pemilihan Ketua RT, 3.000 = Camat Verse, 5.000 = sponsor/ruko mitra, 10.000 = Wakil Kepala Kota.
+- Tetap fiktif & sopan: tanpa politik nyata, SARA, nama pejabat/merek asli. Jangan meniru karakter/nama/kalimat akun lain (mis. @sekolahbebaz): hanya format yang boleh mirip.
+
+## Cak Darjo (WAJIB konsisten), desain Gen Z (sejak 7 Nov 2026)
+Dibuat oleh `makeCakDarjo()` di `js/world.js` (satu sumber untuk website, video, gambar). Jangan buat versi lain.
+Gaya "figur premium": kepala bulat, tubuh proporsional & ramping, material matte. Rambut textured crop berponi, **kacamata bulat**,
+kulit terang (`#ecc39b`), **kaos putih + kemeja batik udang-bandeng terbuka berkancing** (warna `navy`; pilihan lain: sage/lilac/biru di `PALET_BATIK`),
+celana gelap, **sneakers putih**, **jam tangan emas** (kiri), **tongkat komando** (tangan kiri). Tanpa peci, tanpa kumis, tanpa selempang, tanpa akuarium.
+Ekspresi (`EKSPRESI`): normal, senang (tertawa + gigi), nyengir, skeptis, marah, sedih, kaget, bosan, panik, tidur. Dipakai per baris naskah: `"ekspresi": "senang"`.
+Sifat ramah, lucu, sedikit ngenes. Bicara Indonesia + Suroboyoan ringan ("rek", "sampeyan", "sesuk tak bangun").
+
+## Gaya visual (premium)
+Tone mapping ACES, cahaya hangat + bayangan lembut, langit bergradasi + kabut, palet pastel; rumput/bunga/batu instanced, pohon & awan low-poly bersegi.
+Mode ringan otomatis untuk HP (`RINGAN` di `createWorld`). Papan pengumuman di peta (`kota.papan`, diatur Admin → Umum).
+
+## Membuat video (alur standar)
+1. Pemilik mengirim tabel script (dari ChatGPT) atau ide → ubah ke `video/<nama>/naskah.json`
+   (format: lihat contoh di bawah; kamera: closeup | medium | mundur | udara | atas | ayam | bangunan:<id>;
+   pose: bicara | senyum | melambai | menoleh; ekspresi: lihat daftar di atas; stiker: pil, papan, judul, kartu_teks, ide, lahan, aturan, stempel, follow, url, komen, konfeti;
+   sfx: pop | whoosh | krik | tada | stempel).
+2. `bash alat/buat-video.sh video/<nama>` → suara ElevenLabs + render 1080×1920 + audio + `SidoarjoVerse-<nama>.mp4` + `cover.jpg`.
+   Rekaman suara dari pemilik: potong per baris jadi `vo01.wav…`, lalu `SUARA_OPSI=--rekaman bash alat/buat-video.sh video/<nama>`.
+3. Uji cepat beberapa frame dulu: `node alat/render.js video/<nama> 30,300,600` (server: `python3 -m http.server 8080` di root repo).
+4. Kirim MP4 ke pemilik. Folder `video/` tidak di-commit (gitignore).
+- **Subtitle = persis kata yang diucapkan** (kolom Subtitle ChatGPT diabaikan; `subtitle_khusus: true` untuk pengecualian).
+- Suara: ElevenLabs (key tersimpan di environment, header `xi-api-key: proxy-injected`), model `eleven_multilingual_v2`.
+  Suara resmi: **Bagas** (minta Voice ID ke pemilik jika belum ada di `naskah.json` → `"suara"`). Cadangan: Adam `pNInz6obpgDQGcFmaJgB`.
+
+Contoh satu baris naskah:
+```json
+{"tts": "Komen dengan like terbanyak, sesuk tak bangun!", "kamera": "closeup", "pose": "bicara",
+ "stiker": [{"jenis": "aturan"}], "sfx": "stempel"}
+```
+
+## Teknis singkat
+- Situs statis (GitHub Pages, repo `sidoarjoverse/sidoarjoverse.github.io`, branch `main`) + Supabase (`js/config.js`, key publishable boleh publik).
+- SQL: `supabase/schema.sql` (sudah), lalu `02-pemilu.sql` dan `03-rumah.sql` (pemilik perlu menjalankan berurutan di SQL Editor bila belum).
+- Rumahku: admin → Bangunan → "Buat 1 blok perumahan" (6 rumah `huni: true`); warga klik rumah → Tempati / Masuk rumah (`js/rumah.js`, interior 3D).
+- Uji di localhost dengan `?demo` agar tidak menyentuh database asli.
+- Folder rencana `konten-30-hari/` dan `roadmap-fitur/` sengaja tidak di-commit (repo publik).
+
+## Aturan video: keterangan episode
+Setiap video WAJIB dibuka dengan keterangan episode. Isi `"episode": N` (dan opsional `"seri": "..."`) di `naskah.json`: video.js menampilkan kartu "EPISODE N" di 2,6 detik pertama + lencana "EPS N" di samping DAY. Baris kedua naskah menyebut "Sidoarjo Vers, episode …". Video peluncuran = Episode 4.
+
+## Aturan video: nama akun di kartu komen
+Nama akun pada kartu komen/protes di video (stiker `protes`, `tumpuk`, `komen`) memakai **username acak yang terlihat normal** (mis. `@dindaayu.07`, `@rizalfahmi_`, `@bagus_wicak`), **jangan** dibuat sesuai isi komentarnya (mis. `@offroad.waru99` untuk komen jalan) karena terlihat dikarang. Jangan pakai username yang sama berulang-ulang antar episode.
+
+## Aturan video: kalimat perkenalan (template tiap video)
+Setiap video (episode maupun spesial) memuat kalimat perkenalan setelah hook / setelah menyebut episode, supaya penonton baru langsung paham:
+> "Gawe sampeyan sing durung ngerti: iki Sidoarjo Vers, kota impian sing dibangun teko komen-komen kalian!"
+Di naskah, baris itu diberi stiker `{"jenis": "kenalan"}` (kartu "🏙️ KENALAN SIK, REK! · SidoarjoVerse · kota impian sing dibangun teko komen kalian").
